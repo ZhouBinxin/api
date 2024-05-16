@@ -1,4 +1,5 @@
 import { Environment } from "vitest";
+import { bingImg } from "./bing"
 
 async function handleRequest (request: Request, env: Environment) {
 	const url = new URL(request.url);
@@ -28,7 +29,7 @@ async function handleRequest (request: Request, env: Environment) {
 	});
 	const timestamp = formatter.format(date);
 
-	let data = {
+	let data: any = {
 		timestamp: timestamp,
 	}
 
@@ -38,6 +39,20 @@ async function handleRequest (request: Request, env: Environment) {
 		return new Response(JSON.stringify(data), { status, headers });
 	} else if (path === "/favicon.ico") {
 		return handleFavicon();
+	} else if (path.startsWith("/bing")) {
+		const msg = await handleBing(request, env);
+		data.msg = msg;
+		return new Response(JSON.stringify(data), { status, headers });
+	}
+}
+
+async function handleBing (request: Request, env: Environment) {
+	if (request.method === "GET") {
+		if (new URL(request.url).pathname.startsWith('/bing/img')) {
+			const imageUrl = await bingImg();
+			// 跳转
+			return imageUrl;
+		}
 	}
 }
 
