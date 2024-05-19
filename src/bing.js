@@ -3,5 +3,5 @@ export async function bingImg () {
   const res = await fetch(url);
   const data = await res.json();
 
-  return 'https://global.bing.com' + (data as any).images[0].url;
+  return 'https://global.bing.com' + data.images[0].url;
 }

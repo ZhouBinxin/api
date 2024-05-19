@@ -1,7 +1,6 @@
-import { Environment } from "vitest";
 import { bingImg } from "./bing"
 
-async function handleRequest (request: Request, env: Environment) {
+async function handleRequest (request, env) {
 	const url = new URL(request.url);
 	const path = url.pathname;
 	const method = request.method;
@@ -29,7 +28,7 @@ async function handleRequest (request: Request, env: Environment) {
 	});
 	const timestamp = formatter.format(date);
 
-	let data: any = {
+	let data = {
 		timestamp: timestamp,
 	}
 
@@ -46,7 +45,7 @@ async function handleRequest (request: Request, env: Environment) {
 	}
 }
 
-async function handleBing (request: Request, env: Environment) {
+async function handleBing (request, env) {
 	if (request.method === "GET") {
 		if (new URL(request.url).pathname.startsWith('/bing/img')) {
 			const imageUrl = await bingImg();
@@ -62,7 +61,7 @@ async function handleFavicon () {
 }
 
 export default {
-	async fetch (request: Request, env: Environment) {
+	async fetch (request, env) {
 		return handleRequest(request, env);
 	},
 };
