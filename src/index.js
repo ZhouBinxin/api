@@ -1,4 +1,5 @@
 import { bingImg } from "./bing"
+import { sendMessage } from "./msg"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -42,6 +43,17 @@ async function handleRequest (request, env) {
 		const msg = await handleBing(request, env);
 		data.msg = msg;
 		return new Response(JSON.stringify(data), { status, headers });
+	} else if (path.startsWith("/msg")) {
+		const msg = await handleMsg(request, env);
+		data.msg = msg;
+		return new Response(JSON.stringify(data), { status, headers });
+	}
+}
+
+async function handleMsg (request, env) {
+	if (request.method === "POST") {
+		const msg = await sendMessage(request, env)
+		return msg;
 	}
 }
 
@@ -49,7 +61,6 @@ async function handleBing (request, env) {
 	if (request.method === "GET") {
 		if (new URL(request.url).pathname.startsWith('/bing/img')) {
 			const imageUrl = await bingImg();
-			// 跳转
 			return imageUrl;
 		}
 	}
