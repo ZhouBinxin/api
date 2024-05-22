@@ -8,7 +8,7 @@ export async function sendMessage (request, env) {
   }
 }
 
-async function qywx (content, env) {
+export async function qywx (content, env) {
   let webhook = content.webhook;
   const { type, message, img_md5 } = content;
 

@@ -11,3 +11,24 @@
 }
 ```
 
+### 天翼云
+
+#### 云电脑保活
+- 请求方式：POST
+- 请求地址：https://api.bxin.workers.dev/ecloud/ctyun/keepalive
+- 请求参数：
+```json
+{
+  "objId": "xxx",
+  "deviceCode": "xxx",
+  "userid": "xxx",
+  "secret_key": "xxx"
+}
+```
+- 返回数据：
+```json
+{
+  "code": 200,
+  "msg": "success"
+}
+```

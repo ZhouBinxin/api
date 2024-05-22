@@ -1,5 +1,6 @@
 import { bingImg } from "./bing"
-import { sendMessage } from "./msg"
+import { sendMessage,qywx } from "./msg"
+import { ctyun, ecloud } from "./ecloud"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -47,6 +48,22 @@ async function handleRequest (request, env) {
 		const msg = await handleMsg(request, env);
 		data.msg = msg;
 		return new Response(JSON.stringify(data), { status, headers });
+	} else if (path.startsWith("/ecloud")) {
+		const msg = await handleEcloud(request, env);
+		data.msg = msg;
+		return new Response(JSON.stringify(data), { status, headers });
+	}
+}
+
+async function handleEcloud (request, env) {
+	if (request.method === "POST") {
+		if (new URL(request.url).pathname.startsWith('/ecloud/ctyun/keepalive')) {
+			const { msg, userid } = await ctyun(request, env);
+			if (msg === 'success') {
+				await sendMsg(userid + 'ctyun keepalive success', env);
+			}
+			return msg;
+		}
 	}
 }
 
@@ -69,6 +86,16 @@ async function handleBing (request, env) {
 async function handleFavicon () {
 	const faviconUrl = 'https://blog.bxin.top/img/favicon.ico';
 	return fetch(faviconUrl);
+}
+
+async function sendMsg (message, env) {
+	const content = {
+			"webhook": "H",
+			"type": "text",
+			"message": message
+	}
+
+	await qywx(content, env)
 }
 
 export default {

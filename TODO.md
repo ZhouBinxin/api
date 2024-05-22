@@ -1,4 +1,3 @@
-- 同花顺
 - 天翼云电脑自动登录保活
 - 公交实时数据
 - 高德地图
@@ -6,3 +5,5 @@
 - 节假日 https://timor.tech/api/holiday/year/2024
 - 企业微信 https://developer.work.weixin.qq.com/document/path/91770
 - 美团
+- 百度大模型 https://cloud.baidu.com/doc/WENXINWORKSHOP/s/6ltgkzya5
+- 讯飞大模型 https://passport.xfyun.cn/login
