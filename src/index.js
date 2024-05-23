@@ -1,6 +1,7 @@
 import { bingImg } from "./bing"
 import { sendMessage,qywx } from "./msg"
 import { ctyun, ecloud } from "./ecloud"
+import { js_bus } from "./bus"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -52,7 +53,22 @@ async function handleRequest (request, env) {
 		const msg = await handleEcloud(request, env);
 		data.msg = msg;
 		return new Response(JSON.stringify(data), { status, headers });
+	} else if (path.startsWith("/bus")) {
+		const msg = await handleBus(request, env);
+		data.msg = msg;
+		return new Response(JSON.stringify(data), { status, headers });
 	}
+}
+
+async function handleBus (request, env) {
+  if (request.method === "POST") {
+    const requestData = await request.json();
+		const { content, id } = requestData;
+
+		const data = await js_bus(content, id)
+
+		return data
+  }
 }
 
 async function handleEcloud (request, env) {
