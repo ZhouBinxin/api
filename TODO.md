@@ -1,4 +1,3 @@
-- 天翼云电脑自动登录保活
 - 公交实时数据
 - 高德地图
 - 百度翻译 https://fanyi-api.baidu.com/api/trans/product/desktop?req=detail

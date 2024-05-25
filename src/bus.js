@@ -8,12 +8,12 @@ export async function js_bus (content, id) {
     params = {
       'Action': 'GetXianLuZhanDian',
       'XianLu': id,
-    }
+    };
   } else if (content === "bus") {
     params = {
       'Action': 'GetXianLuCheKuang',
       'XianLu': '101',
-    }
+    };
   }
   return await handleRequest(params);
 }
@@ -27,8 +27,8 @@ async function handleRequest (params) {
   // console.log(response.text)
   if (response.ok) {
     const data = await response.json();
-    return JSON.stringify(data)
+    return JSON.stringify(data);
   } else {
-    return 'error'
+    return 'error';
   }
 }

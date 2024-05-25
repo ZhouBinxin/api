@@ -13,7 +13,7 @@ async function handleRequest (request, env) {
 		"Access-Control-Allow-Methods": "*",
 		"Access-Control-Allow-Headers": "*",
 		"Content-Type": "application/json",
-	}
+	};
 
 	if (method === "OPTIONS") {
 		return new Response(null, { headers });
@@ -33,7 +33,7 @@ async function handleRequest (request, env) {
 
 	let data = {
 		timestamp: timestamp,
-	}
+	};
 
 	let status = 200;
 
@@ -65,9 +65,9 @@ async function handleBus (request, env) {
     const requestData = await request.json();
 		const { content, id } = requestData;
 
-		const data = await js_bus(content, id)
+		const data = await js_bus(content, id);
 
-		return data
+		return data;
   }
 }
 
@@ -85,7 +85,7 @@ async function handleEcloud (request, env) {
 
 async function handleMsg (request, env) {
 	if (request.method === "POST") {
-		const msg = await sendMessage(request, env)
+		const msg = await sendMessage(request, env);
 		return msg;
 	}
 }
@@ -106,12 +106,12 @@ async function handleFavicon () {
 
 async function sendMsg (message, env) {
 	const content = {
-			"webhook": "H",
-			"type": "text",
-			"message": message
-	}
+		"webhook": "H",
+		"type": "text",
+		"message": message
+	};
 
-	await qywx(content, env)
+	await qywx(content, env);
 }
 
 export default {

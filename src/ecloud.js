@@ -1,5 +1,5 @@
 import * as crypto from 'node:crypto';
-import { } from './msg'
+
 // 天翼云
 export async function ecloud (request, env) {
 
@@ -7,8 +7,8 @@ export async function ecloud (request, env) {
 
 export async function ctyun (request, env) {
   const { objId, deviceCode, userid, secret_key } = await request.json();
-  const url = "https://desk.ctyun.cn:8810/api/"
-  const computer_connect = "desktop/client/connect"
+  const url = "https://desk.ctyun.cn:8810/api/";
+  const computer_connect = "desktop/client/connect";
 
   //  设置连接云电脑时需要的设备信息
   const device_info = {
@@ -28,18 +28,18 @@ export async function ctyun (request, env) {
   };
 
   //  配置请求头中需要的一些参数
-  const app_model_value = "2"
-  const device_code_value = deviceCode
-  const device_type_value = "60"
-  const request_id_value = "1704522993726"
-  const tenant_id_value = "15"
-  const timestamp_value = Date.now().toString()
-  const userid_value = userid
-  const version_value = "201360101"
-  const secret_key_value = secret_key
+  const app_model_value = "2";
+  const device_code_value = deviceCode;
+  const device_type_value = "60";
+  const request_id_value = "1704522993726";
+  const tenant_id_value = "15";
+  const timestamp_value = Date.now().toString();
+  const userid_value = userid;
+  const version_value = "201360101";
+  const secret_key_value = secret_key;
 
   //  创建签名字符串
-  const signature_str = device_type_value + request_id_value + tenant_id_value + timestamp_value + userid_value + version_value + secret_key_value
+  const signature_str = device_type_value + request_id_value + tenant_id_value + timestamp_value + userid_value + version_value + secret_key_value;
 
   //  使用MD5算法创建签名
   let hash = crypto.createHash('md5');
@@ -62,10 +62,10 @@ export async function ctyun (request, env) {
       'ctg-version': version_value
     },
     body: new URLSearchParams(device_info)
-  })
+  });
 
   const data = await response.json();
-  const code = data["code"]
+  const code = data["code"];
 
   let msg = "error";
   if (code === 0) {

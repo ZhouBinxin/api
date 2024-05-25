@@ -14,6 +14,12 @@
 ### 天翼云
 
 #### 云电脑保活
+<font color=red>
+该接口无法正常使用
+
+WARNING: known issue with `fetch()` requests to custom HTTPS ports in published Workers:the custom port will be ignored when the Worker is published using the `wrangler deploy` command.
+</font>
+
 - 请求方式：POST
 - 请求地址：https://api.bxin.workers.dev/ecloud/ctyun/keepalive
 - 请求参数：
