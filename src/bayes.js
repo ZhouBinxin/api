@@ -6,28 +6,70 @@ export async function classifySMS (requestData, env) {
   const content = userMsg.content;
 
   // 进行分类
-  // const result = await classifyNB(content, env);
-  const result = "垃圾短信";
+  const result = await nativeBayes(content, env);
 
   return await buildStreamData(result);
 }
 
-async function classifyNB (content, env) {
+async function nativeBayes (content, env) {
   // 读取训练好的模型
-  let model = readData("bayes_en", env)
-
+  let model = await readData("bayes_en", env)
+  
   if (!model) {
     return "模型加载失败";
   } else {
     model = JSON.parse(model);
   }
 
-  const p0v = model.p0v;
-  const p1v = model.p1v;
-  const pAv = model.pAv;
+  const vocabList = model.vocabList;
+  const p0v = model.p0V;
+  const p1v = model.p1V;
+  const pAb = model.pAb;
 
-  return "垃圾短信";
+  // 将句子分词并转为小写
+  const words = content.match(/[a-zA-Z]+/g);
+  const lowerCaseWords = words.map(word => word.toLowerCase());
+
+  const thisDoc = await setOfWords2Vec(vocabList, lowerCaseWords);
+
+  const result = await classifyNB(thisDoc, p0v, p1v, pAb);
+
+  if (result == 1) {
+    return "垃圾短信";
+  } else {
+    return "正常短信";
+  }
 }
+
+async function classifyNB (vec2Classify, p0Vec, p1Vec, pClass1) {
+  // 元素相乘
+  let p1 = vec2Classify.map((value, index) => value * p1Vec[index]).reduce((a, b) => a + b, 0) + Math.log(pClass1);
+  let p0 = vec2Classify.map((value, index) => value * p0Vec[index]).reduce((a, b) => a + b, 0) + Math.log(1.0 - pClass1);
+  console.log(`p1: ${p1}, p0: ${p0}`);
+  if (p1 > p0) {
+    return 1; // 垃圾邮件
+  } else {
+    return 0; // 正常邮件
+  }
+}
+
+
+async function setOfWords2Vec (vocabList, inputSet) {
+  // 创建一个长度与词表相同且所有元素都为0的数组
+  let returnVec = new Array(vocabList.length).fill(0);
+
+  // 遍历输入文档中的所有单词
+  for (let word of inputSet) {
+    if (vocabList.includes(word)) {
+      // 如果词表中的单词在输入文档中出现，则将 returnVec 中对应位置的值设为1
+      returnVec[vocabList.indexOf(word)] = 1;
+    } else {
+      console.log(`the word: ${word} is not in my Vocabulary!`);
+    }
+  }
+  return returnVec;
+}
+
 
 // 构建流式返回数据
 async function buildStreamData (data) {
