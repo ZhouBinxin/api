@@ -1,5 +1,5 @@
 import { bingImg } from "./bing"
-import { sendMessage,qywx } from "./msg"
+import { sendMessage, qywx } from "./msg"
 import { ctyun, ecloud } from "./ecloud"
 import { js_bus } from "./bus"
 import { classifySMS } from "./bayes"
@@ -60,11 +60,12 @@ async function handleRequest (request, env) {
 		return new Response(JSON.stringify(data), { status, headers });
 	} else if (path.startsWith("/v1/chat")) {
 		const msg = await handleBayes(request, env);
-		return new Response(JSON.stringify(msg), { status, headers });
+		headers["Content-Type"] = "text/event-stream; charset=utf-8";
+		return new Response(msg, { status, headers });
 	}
 }
 
-async function handleBayes(request, env) {
+async function handleBayes (request, env) {
 	if (request.method === "POST") {
 		const requestData = await request.json();
 
@@ -75,14 +76,14 @@ async function handleBayes(request, env) {
 }
 
 async function handleBus (request, env) {
-  if (request.method === "POST") {
-    const requestData = await request.json();
+	if (request.method === "POST") {
+		const requestData = await request.json();
 		const { content, id } = requestData;
 
 		const data = await js_bus(content, id);
 
 		return data;
-  }
+	}
 }
 
 async function handleEcloud (request, env) {
