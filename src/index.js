@@ -2,6 +2,7 @@ import { bingImg } from "./bing"
 import { sendMessage,qywx } from "./msg"
 import { ctyun, ecloud } from "./ecloud"
 import { js_bus } from "./bus"
+import { classifySMS } from "./bayes"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -57,6 +58,19 @@ async function handleRequest (request, env) {
 		const msg = await handleBus(request, env);
 		data.msg = msg;
 		return new Response(JSON.stringify(data), { status, headers });
+	} else if (path.startsWith("/v1/chat")) {
+		const msg = await handleBayes(request, env);
+		return new Response(JSON.stringify(msg), { status, headers });
+	}
+}
+
+async function handleBayes(request, env) {
+	if (request.method === "POST") {
+		const requestData = await request.json();
+
+		const data = await classifySMS(requestData, env);
+
+		return data;
 	}
 }
 

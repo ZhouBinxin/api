@@ -38,3 +38,17 @@ WARNING: known issue with `fetch()` requests to custom HTTPS ports in published 
   "msg": "success"
 }
 ```
+
+## 垃圾短信判断
+> 接口和 OpenAI 一致
+- 请求方式：POST
+- 请求地址：https://api.bxin.workers.dev/openai/chat/completions
+- 请求参数：
+```json
+{
+  "model": "bayes",
+  "messages": [
+    {"role": "user", "content": "prompt"}
+  ]
+}
+```
