@@ -1,9 +1,11 @@
-export async function js_bus (content, id) {
+import { readData, writeData } from "./cf_kv"
+
+export async function js_bus (content, id, env) {
   let params = {};
   if (content === "lines") {
-    params = {
-      'Action': 'GetAllRunningXianLu'
-    };
+    await getLines(env);
+    const data = await readData('lines', env);
+    return data;
   } else if (content === "line") {
     params = {
       'Action': 'GetXianLuZhanDian',
@@ -18,6 +20,22 @@ export async function js_bus (content, id) {
   return await handleRequest(params);
 }
 
+// 获取所有线路
+async function getLines (env) {
+  const params = {
+    'Action': 'GetAllRunningXianLu'
+  };
+
+  const data = await handleRequest(params);
+  if (!data) {
+    return false;
+  }
+
+  const XianLuList = data.RetData.XianLuList;
+
+  await writeData('lines', JSON.stringify(XianLuList), env)
+}
+
 async function handleRequest (params) {
   const url = 'http://qzjs.shishigj.com/WeixinMP/WMPWebService/GJ.ShiShiGJ/HandlerX.ashx';
   const queryParams = new URLSearchParams(params);
@@ -27,8 +45,8 @@ async function handleRequest (params) {
   // console.log(response.text)
   if (response.ok) {
     const data = await response.json();
-    return JSON.stringify(data);
+    return data;
   } else {
-    return 'error';
+    return false;
   }
 }

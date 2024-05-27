@@ -1,6 +1,6 @@
 import { bingImg } from "./bing"
 import { sendMessage, qywx } from "./msg"
-import { ctyun, ecloud } from "./ecloud"
+import { ctyun } from "./ecloud"
 import { js_bus } from "./bus"
 import { classifySMS } from "./bayes"
 
@@ -80,7 +80,7 @@ async function handleBus (request, env) {
 		const requestData = await request.json();
 		const { content, id } = requestData;
 
-		const data = await js_bus(content, id);
+		const data = await js_bus(content, id, env);
 
 		return data;
 	}

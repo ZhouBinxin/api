@@ -47,9 +47,9 @@ async function classifyNB (vec2Classify, p0Vec, p1Vec, pClass1) {
   let p0 = vec2Classify.map((value, index) => value * p0Vec[index]).reduce((a, b) => a + b, 0) + Math.log(1.0 - pClass1);
   console.log(`p1: ${p1}, p0: ${p0}`);
   if (p1 > p0) {
-    return 1; // 垃圾邮件
+    return 1; // 垃圾短信
   } else {
-    return 0; // 正常邮件
+    return 0; // 正常短信
   }
 }
 

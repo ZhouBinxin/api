@@ -56,5 +56,3 @@ function isValidURL (str) {
     '(\\#[-a-zA-Z\\d_]*)?$', 'i'); // 片段标识符
   return pattern.test(str);
 }
-
-
