@@ -3,6 +3,7 @@ import { sendMessage, qywx } from "./msg"
 import { ctyun } from "./ecloud"
 import { js_bus } from "./bus"
 import { classifySMS } from "./bayes"
+import { check_url } from "./qywx"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -62,7 +63,19 @@ async function handleRequest (request, env) {
 		const msg = await handleBayes(request, env);
 		headers["Content-Type"] = "text/event-stream; charset=utf-8";
 		return new Response(msg, { status, headers });
+	} else if (path.startsWith("/qywx")) {
+		const msg = await handlerQYWX(request, env);
+
+		// return new Response(JSON.stringify(data), { status, headers });
+		return new Response(msg);
 	}
+}
+
+async function handlerQYWX (request, env) {
+	const msg = await check_url(request, env);
+	// await qywx(request, env);
+
+	return msg;
 }
 
 async function handleBayes (request, env) {

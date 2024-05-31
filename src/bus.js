@@ -1,10 +1,7 @@
-import { readData, writeData } from "./cf_kv"
-
 export async function js_bus (content, id, env) {
   let params = {};
   if (content === "lines") {
-    await getLines(env);
-    const data = await readData('lines', env);
+    const data = await getLines();
     return data;
   } else if (content === "line") {
     params = {
@@ -21,19 +18,20 @@ export async function js_bus (content, id, env) {
 }
 
 // 获取所有线路
-async function getLines (env) {
+async function getLines () {
   const params = {
     'Action': 'GetAllRunningXianLu'
   };
 
   const data = await handleRequest(params);
+
   if (!data) {
     return false;
   }
 
   const XianLuList = data.RetData.XianLuList;
 
-  await writeData('lines', JSON.stringify(XianLuList), env)
+  return XianLuList;
 }
 
 async function handleRequest (params) {
