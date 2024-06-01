@@ -42,13 +42,48 @@ WARNING: known issue with `fetch()` requests to custom HTTPS ports in published 
 ## 垃圾短信判断
 > 接口和 OpenAI 一致
 - 请求方式：POST
-- 请求地址：https://api.bxin.workers.dev/openai/chat/completions
+- 请求地址：https://api.bxin.workers.dev/v1/chat/completions
 - 请求参数：
 ```json
 {
   "model": "bayes",
   "messages": [
-    {"role": "user", "content": "prompt"}
-  ]
+    {"role": "user", "content": "hello world"}
+  ],
+  "stream": true
 }
 ```
+
+| 参数名   | 参数类型 | 是否必填 | 参数说明|
+| ---------- | ------------ | ------------ | ------------ |
+| model      | string      | 是         | 模型名称,bayes |
+| messages    | array       | 是         | 对话内容 |
+| role        | string      | 是         | 角色名称,user |
+| content     | string      | 是         | 对话内容 |
+| stream      | boolean     | 是         | 是否流式返回 |
+
+## 翻译
+
+- 请求方式：POST
+- 请求地址：
+- 请求参数：
+```json
+{
+  {
+    "method": "baidu",
+    "content": {
+      "text": "hello world",
+      "source_lang": "zh",
+      "target_lang": "en"
+    }
+  }
+}
+```
+
+| 参数名   | 参数类型 | 是否必填 | 参数说明|
+| ---------- | ------------ | ------------ | ------------ |
+| method      | string      | 是         | 翻译方法,baidu/deeplx（deeplx暂不可用） |
+| content     | object      | 是         | 翻译内容 |
+| text         | string      | 是         | 翻译内容 |
+| source_lang  | string      | 否         | 源语言 |
+| target_lang  | string      | 是         | 目标语言 |

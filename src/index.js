@@ -61,7 +61,11 @@ async function handleRequest (request, env) {
 		return new Response(JSON.stringify(data), { status, headers });
 	} else if (path.startsWith("/v1/chat")) {
 		const msg = await handleBayes(request, env);
-		headers["Content-Type"] = "text/event-stream; charset=utf-8";
+
+		if (msg instanceof ReadableStream) {
+			headers["Content-Type"] = "text/event-stream; charset=utf-8";
+		}
+		
 		return new Response(msg, { status, headers });
 	} else if (path.startsWith("/qywx")) {
 		const msg = await handlerQYWX(request, env);

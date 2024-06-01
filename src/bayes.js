@@ -1,20 +1,40 @@
 import { readData } from "./cf_kv"
+import { translate } from "./tanslate"
 // 分类垃圾短信
 export async function classifySMS (requestData, env) {
   const messages = requestData.messages;
+  const stream = requestData.stream;
   const userMsg = messages[messages.length - 1]
   const content = userMsg.content;
 
   // 进行分类
   const result = await nativeBayes(content, env);
 
-  return await buildStreamData(result);
+  if (stream) {
+    return await buildStreamData(result);
+  } else {
+    return result;
+  };
 }
 
 async function nativeBayes (content, env) {
+  let msg = content;
+  // 判断内容是否是中文
+  if (!/[a-zA-Z]/.test(content)) {
+    const request = {
+      method: "baidu",
+      content: {
+        text: msg,
+        source_lang: "zh",
+        target_lang: "en"
+      }
+    }
+    msg = await translate(request, env);
+  }
+
   // 读取训练好的模型
   let model = await readData("bayes_en", env)
-  
+
   if (!model) {
     return "模型加载失败";
   } else {
@@ -27,7 +47,7 @@ async function nativeBayes (content, env) {
   const pAb = model.pAb;
 
   // 将句子分词并转为小写
-  const words = content.match(/[a-zA-Z]+/g);
+  const words = msg.match(/\b\w+\b/g);
   const lowerCaseWords = words.map(word => word.toLowerCase());
 
   const thisDoc = await setOfWords2Vec(vocabList, lowerCaseWords);
@@ -45,7 +65,7 @@ async function classifyNB (vec2Classify, p0Vec, p1Vec, pClass1) {
   // 元素相乘
   let p1 = vec2Classify.map((value, index) => value * p1Vec[index]).reduce((a, b) => a + b, 0) + Math.log(pClass1);
   let p0 = vec2Classify.map((value, index) => value * p0Vec[index]).reduce((a, b) => a + b, 0) + Math.log(1.0 - pClass1);
-  console.log(`p1: ${p1}, p0: ${p0}`);
+
   if (p1 > p0) {
     return 1; // 垃圾短信
   } else {
