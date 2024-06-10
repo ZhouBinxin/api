@@ -38,7 +38,7 @@ async function getAccessToken (refreshToken) {
 async function getShareToken (accessToken) {
   const url = 'https://chat.oaifree.com/token/register';
   const headers = { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' };
-  const data = `unique_name=${generateRandomHex(8)}&access_token=${accessToken}&expires_in=0&site_limit=&gpt35_limit=-1&gpt4_limit=-1&temporary_chat=true`;
+  const data = `unique_name=${generateRandomHex(8)}&access_token=${accessToken}&expires_in=0&site_limit=&gpt35_limit=-1&gpt4_limit=-1&show_conversations=false`;
 
   const response = await fetch(url, { method: 'POST', headers, body: data });
   if (response.ok) {
