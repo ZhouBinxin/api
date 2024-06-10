@@ -4,6 +4,7 @@ import { ctyun } from "./ecloud"
 import { js_bus } from "./bus"
 import { classifySMS } from "./bayes"
 import { check_url } from "./qywx"
+import { oaifree } from "./oaifree"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -65,14 +66,21 @@ async function handleRequest (request, env) {
 		if (msg instanceof ReadableStream) {
 			headers["Content-Type"] = "text/event-stream; charset=utf-8";
 		}
-		
+
 		return new Response(msg, { status, headers });
 	} else if (path.startsWith("/qywx")) {
 		const msg = await handlerQYWX(request, env);
 
 		// return new Response(JSON.stringify(data), { status, headers });
 		return new Response(msg);
+	} else if (path.startsWith("/oai")) {
+		const msg =await handlerOAI(request, env);
+		return Response.redirect(msg, 302);
 	}
+}
+
+async function handlerOAI (request, env) {
+	return oaifree(request, env);
 }
 
 async function handlerQYWX (request, env) {
