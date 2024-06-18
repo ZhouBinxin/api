@@ -87,3 +87,54 @@ WARNING: known issue with `fetch()` requests to custom HTTPS ports in published 
 | text         | string      | 是         | 翻译内容 |
 | source_lang  | string      | 否         | 源语言 |
 | target_lang  | string      | 是         | 目标语言 |
+
+## 消息发送
+
+- 请求方式：POST
+- 请求地址：https://api.bxin.workers.dev/msg
+
+### 文本/markdwon类型
+- 请求参数：
+```json
+{
+  "method": "qywx",
+  "content": {
+    "webhook":"H",
+    "type": "text",
+    "message": "hello world"
+  }
+}
+```
+
+| 参数名   | 参数类型 | 是否必填 | 参数说明|
+| ---------- | ------------ | ------------ | ------------ |
+| method      | string      | 是         | 消息类型,qywx|
+| content     | object      | 是         | 消息内容 |
+| webhook     | string      | 是         | 企业微信机器人webhook |
+| type        | string      | 是         | 消息类型,text/markdown |
+| message     | string      | 是         | 消息内容 |
+
+### 图片类型
+- 请求参数：
+```json
+{
+  "method": "qywx",
+  "content": {
+    "webhook":"H",
+    "type": "image",
+    "message": {
+      "base64": "xxx",
+      "md5": "xxx"
+    }
+  }
+}
+```
+| 参数名   | 参数类型 | 是否必填 | 参数说明|
+| ---------- | ------------ | ------------ | ------------ |
+| method      | string      | 是         | 消息类型,qywx|
+| content     | object      | 是         | 消息内容 |
+| webhook     | string      | 是         | 企业微信机器人webhook |
+| type        | string      | 是         | 消息类型,image |
+| message     | object      | 是         | 消息内容 |
+| base64     | string      | 是         | 图片base64编码 |
+| md5     | string      | 是         | 图片md5值 |

@@ -10,7 +10,7 @@ export async function sendMessage (request, env) {
 
 export async function qywx (content, env) {
   let webhook = content.webhook;
-  const { type, message, img_md5 } = content;
+  const { type, message } = content;
 
   if (!isValidURL(webhook)) {
     webhook = env["QYWX" + webhook];
@@ -24,10 +24,9 @@ export async function qywx (content, env) {
       content: message,
     };
   } else if (type === 'image') {
-    requestData.image = {
-      base64: message,
-      md5: img_md5,
-    };
+    // const img_msg= JSON.parse(message);
+    requestData.image = message;
+    console.log(requestData);
   } else if (type === 'markdown') {
     requestData.markdown = {
       content: message,
