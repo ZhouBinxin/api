@@ -28,6 +28,10 @@ export async function qywx (content, env) {
       base64: message,
       md5: img_md5,
     };
+  } else if (type === 'markdown') {
+    requestData.markdown = {
+      content: message,
+    };
   }
   // 发送POST请求到指定的webhook地址
   const response = await fetch(webhook, {

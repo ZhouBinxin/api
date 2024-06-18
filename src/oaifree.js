@@ -7,6 +7,7 @@ export async function oaifree (request, env) {
 
   const accessToken = await getAccessToken(refreshToken);
   const shareToken = await getShareToken(accessToken);
+
   return autoLogin(shareToken);
 }
 
