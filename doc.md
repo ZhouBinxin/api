@@ -92,8 +92,8 @@ WARNING: known issue with `fetch()` requests to custom HTTPS ports in published 
 
 - 请求方式：POST
 - 请求地址：https://api.bxin.workers.dev/msg
-
-### 文本/markdwon类型
+### 企业微信
+#### 文本/markdwon类型
 - 请求参数：
 ```json
 {
@@ -114,7 +114,7 @@ WARNING: known issue with `fetch()` requests to custom HTTPS ports in published 
 | type        | string      | 是         | 消息类型,text/markdown |
 | message     | string      | 是         | 消息内容 |
 
-### 图片类型
+#### 图片类型
 - 请求参数：
 ```json
 {
@@ -138,3 +138,28 @@ WARNING: known issue with `fetch()` requests to custom HTTPS ports in published 
 | message     | object      | 是         | 消息内容 |
 | base64     | string      | 是         | 图片base64编码 |
 | md5     | string      | 是         | 图片md5值 |
+
+#### 邮件（轻兔推送https://notice.lighttools.net/）
+
+- 请求参数：
+```json
+{
+  "method": "email",
+  "content": {
+    "webhook": "apikey",
+    "message":{
+      "title": "hello world",
+      "content": "hello world"
+    }
+  }
+}
+```
+| 参数名   | 参数类型 | 是否必填 | 参数说明|
+| ---------- | ------------ | ------------ | ------------ |
+| method      | string      | 是         | 消息类型,email|
+| content     | object      | 是         | 消息内容 |
+| webhook     | string      | 是         | 轻兔推送apikey |
+| message     | object      | 是         | 消息内容 |
+| title     | string      | 是         | 标题 |
+| content     | string      | 是         | 内容 |
+
