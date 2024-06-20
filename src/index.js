@@ -5,6 +5,7 @@ import { js_bus } from "./bus"
 import { classifySMS } from "./bayes"
 import { check_url } from "./qywx"
 import { oaifree } from "./oaifree"
+import { ths } from "./ths"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -74,9 +75,17 @@ async function handleRequest (request, env) {
 		// return new Response(JSON.stringify(data), { status, headers });
 		return new Response(msg);
 	} else if (path.startsWith("/oai")) {
-		const msg =await handlerOAI(request, env);
+		const msg = await handlerOAI(request, env);
 		return Response.redirect(msg, 302);
+	} else if (path.startsWith("/ths")) {
+		const msg = await handlerTHS(request, env);
+		return new Response(msg);
 	}
+}
+
+async function handlerTHS (request, env) {
+	const msg = await ths(request, env);
+	return msg;
 }
 
 async function handlerOAI (request, env) {
