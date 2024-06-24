@@ -3,5 +3,8 @@ export async function bingImg () {
   const res = await fetch(url);
   const data = await res.json();
 
-  return 'https://global.bing.com' + data.images[0].url;
+  // 构建返回json数据
+  return {
+    url: 'https://global.bing.com' + data.images[0].url
+  };
 }

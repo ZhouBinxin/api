@@ -1,47 +1,30 @@
+import { readData, writeData } from "./cf_kv"
 export async function ths (request, env) {
-  const content = await request.json();
-  let msg = await updateSecret(content, env);
-  msg = msg + '\n' + await star(env);
-  return msg
+  const { method, content } = await request.json();
+
+  if (method === "update") {
+    await updateSecret(content, env);
+    const msg = await star(env);
+    return msg;
+  } else if (method === "read") {
+    return await readSecret(content, env);
+  }
 }
 
 // 更新机密值
 async function updateSecret (content, env) {
-  const repo_owner = 'ZhouBinxin';
-  const repo_name = 'Convertible_bonds';
-  const access_token = env.ACCESS_TOKEN;
+  const key = "ths_token"
+  writeData(key, content.secret, env);
+}
 
-  const secret_name = 'REFRESHTOKEN';
-
-  const url = `https://api.github.com/repos/${repo_owner}/${repo_name}/actions/secrets/${secret_name}`;
-
-  const headers = {
-    'Authorization': `token ${access_token}`,
-    'Accept': 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json', // 添加 Content-Type
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
-  };
-
-  const data = JSON.stringify({ // 将数据转换为字符串
-    'encrypted_value': content.secret,
-    'key_id': env.BOND_KET_ID
-  });
-
-  try {
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: headers,
-      body: data
-    });
-
-    if (response.status === 204) {
-      return `Secret ${secret_name} updated successfully.`;
-    } else {
-      return `Failed to update secret ${secret_name}. Status code: ${response.status} \n ${await response.text()}`;
-    }
-  } catch (error) {
-    return `Error updating secret ${secret_name}: ${error.message}`;
+async function readSecret (content, env) {
+  const token = env.BX_TOKEN
+  if (content.token != token) {
+    return false;
   }
+
+  const key = "ths_token"
+  return readData(key, env)
 }
 
 // 点赞和取消点赞

@@ -46,8 +46,7 @@ async function handleRequest (request, env) {
 	} else if (path === "/favicon.ico") {
 		return handleFavicon();
 	} else if (path.startsWith("/bing")) {
-		const msg = await handleBing(request, env);
-		data.msg = msg;
+		data.data = await handleBing(request, env);
 		return new Response(JSON.stringify(data), { status, headers });
 	} else if (path.startsWith("/msg")) {
 		const msg = await handleMsg(request, env);
@@ -79,7 +78,8 @@ async function handleRequest (request, env) {
 		return Response.redirect(msg, 302);
 	} else if (path.startsWith("/ths")) {
 		const msg = await handlerTHS(request, env);
-		return new Response(msg);
+		data.msg = msg;
+		return new Response(JSON.stringify(data), { status, headers });
 	}
 }
 
@@ -142,8 +142,7 @@ async function handleMsg (request, env) {
 async function handleBing (request, env) {
 	if (request.method === "GET") {
 		if (new URL(request.url).pathname.startsWith('/bing/img')) {
-			const imageUrl = await bingImg();
-			return imageUrl;
+			return await bingImg();
 		}
 	}
 }
