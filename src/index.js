@@ -19,6 +19,7 @@ async function handleRequest (request, env) {
 		"Content-Type": "application/json",
 	};
 
+	// Handle CORS preflight request
 	if (method === "OPTIONS") {
 		return new Response(null, { headers });
 	}
@@ -40,48 +41,66 @@ async function handleRequest (request, env) {
 	};
 
 	let status = 200;
+	let response;
 
-	if (path === "/") {
-		return new Response(JSON.stringify(data), { status, headers });
-	} else if (path === "/favicon.ico") {
-		return handleFavicon();
-	} else if (path.startsWith("/bing")) {
-		data.data = await handleBing(request, env);
-		return new Response(JSON.stringify(data), { status, headers });
-	} else if (path.startsWith("/msg")) {
-		const msg = await handleMsg(request, env);
-		data.msg = msg;
-		return new Response(JSON.stringify(data), { status, headers });
-	} else if (path.startsWith("/ecloud")) {
-		const msg = await handleEcloud(request, env);
-		data.msg = msg;
-		return new Response(JSON.stringify(data), { status, headers });
-	} else if (path.startsWith("/bus")) {
-		const msg = await handleBus(request, env);
-		data.msg = msg;
-		return new Response(JSON.stringify(data), { status, headers });
-	} else if (path.startsWith("/v1/chat")) {
-		const msg = await handleBayes(request, env);
+	// Route handlers mapped to paths
+	const routeHandlers = {
+		"/": async () => {
+			return new Response(JSON.stringify(data), { status, headers });
+		},
+		"/favicon.ico": () => {
+			return handleFavicon();
+		},
+		"/bing": async () => {
+			data.data = await handleBing(request, env);
+			return new Response(JSON.stringify(data), { status, headers });
+		},
+		"/msg": async () => {
+			const msg = await handleMsg(request, env);
+			data.msg = msg;
+			return new Response(JSON.stringify(data), { status, headers });
+		},
+		"/ecloud": async () => {
+			const msg = await handleEcloud(request, env);
+			data.msg = msg;
+			return new Response(JSON.stringify(data), { status, headers });
+		},
+		"/bus": async () => {
+			const msg = await handleBus(request, env);
+			data.msg = msg;
+			return new Response(JSON.stringify(data), { status, headers });
+		},
+		"/v1/chat": async () => {
+			const msg = await handleBayes(request, env);
+			if (msg instanceof ReadableStream) {
+				headers["Content-Type"] = "text/event-stream; charset=utf-8";
+			}
+			return new Response(msg, { status, headers });
+		},
+		"/qywx": async () => {
+			return new Response(await handlerQYWX(request, env), { status, headers });
+		},
+		"/oai": async () => {
+			return Response.redirect(await handlerOAI(request, env), 302);
+		},
+		"/ths": async () => {
+			const msg = await handlerTHS(request, env);
+			data.msg = msg;
+			return new Response(JSON.stringify(data), { status, headers });
+		},
+	};
 
-		if (msg instanceof ReadableStream) {
-			headers["Content-Type"] = "text/event-stream; charset=utf-8";
-		}
-
-		return new Response(msg, { status, headers });
-	} else if (path.startsWith("/qywx")) {
-		const msg = await handlerQYWX(request, env);
-
-		// return new Response(JSON.stringify(data), { status, headers });
-		return new Response(msg);
-	} else if (path.startsWith("/oai")) {
-		const msg = await handlerOAI(request, env);
-		return Response.redirect(msg, 302);
-	} else if (path.startsWith("/ths")) {
-		const msg = await handlerTHS(request, env);
-		data.msg = msg;
-		return new Response(JSON.stringify(data), { status, headers });
+	// Find handler for the current path
+	const handler = routeHandlers[path];
+	if (handler) {
+		response = await handler();
+	} else {
+		response = new Response("Not Found", { status: 404 });
 	}
+
+	return response;
 }
+
 
 async function handlerTHS (request, env) {
 	const msg = await ths(request, env);
