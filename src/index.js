@@ -1,4 +1,4 @@
-import { bingImg } from "./bing"
+import { bing } from "./bing"
 import { sendMessage, qywx } from "./msg"
 import { ctyun } from "./ecloud"
 import { js_bus } from "./bus"
@@ -12,6 +12,8 @@ async function handleRequest (request, env) {
 	const path = url.pathname;
 	const method = request.method;
 
+	const requestData = await parseRequestData(request);
+
 	const headers = {
 		"Access-Control-Allow-Origin": "*",
 		"Access-Control-Allow-Methods": "*",
@@ -24,78 +26,78 @@ async function handleRequest (request, env) {
 		return new Response(null, { headers });
 	}
 
-	const date = new Date();
-	const formatter = new Intl.DateTimeFormat('zh-CN', {
-		timeZone: 'Asia/Shanghai',
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit'
-	});
-	const timestamp = formatter.format(date);
-
-	let data = {
-		timestamp: timestamp,
-	};
-
-	let status = 200;
 	let response;
 
-	// Route handlers mapped to paths
-	const routeHandlers = {
-		"/": async () => {
-			return new Response(JSON.stringify(data), { status, headers });
-		},
-		"/favicon.ico": () => {
-			return handleFavicon();
-		},
-		"/bing": async () => {
-			data.data = await handleBing(request, env);
-			return new Response(JSON.stringify(data), { status, headers });
-		},
-		"/msg": async () => {
-			const msg = await handleMsg(request, env);
-			data.msg = msg;
-			return new Response(JSON.stringify(data), { status, headers });
-		},
-		"/ecloud": async () => {
-			const msg = await handleEcloud(request, env);
-			data.msg = msg;
-			return new Response(JSON.stringify(data), { status, headers });
-		},
-		"/bus": async () => {
-			const msg = await handleBus(request, env);
-			data.msg = msg;
-			return new Response(JSON.stringify(data), { status, headers });
-		},
-		"/v1/chat": async () => {
-			const msg = await handleBayes(request, env);
-			if (msg instanceof ReadableStream) {
-				headers["Content-Type"] = "text/event-stream; charset=utf-8";
-			}
-			return new Response(msg, { status, headers });
-		},
-		"/qywx": async () => {
-			return new Response(await handlerQYWX(request, env), { status, headers });
-		},
-		"/oai": async () => {
-			return Response.redirect(await handlerOAI(request, env), 302);
-		},
-		"/ths": async () => {
-			const msg = await handlerTHS(request, env);
-			data.msg = msg;
-			return new Response(JSON.stringify(data), { status, headers });
-		},
-	};
+	try {
+		const date = new Date();
+		const formatter = new Intl.DateTimeFormat('zh-CN', {
+			timeZone: 'Asia/Shanghai',
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit'
+		});
+		const timestamp = formatter.format(date);
 
-	// Find handler for the current path
-	const handler = routeHandlers[path];
-	if (handler) {
-		response = await handler();
-	} else {
-		response = new Response("Not Found", { status: 404 });
+		let data = {
+			timestamp: timestamp,
+		};
+
+		let status = 200;
+
+		const routeHandlers = {
+			"/": async () => {
+				return new Response(JSON.stringify(data), { status, headers });
+			},
+			"/favicon.ico": () => {
+				return handleFavicon();
+			},
+			"/bing": async () => {
+				data.data = await bing(requestData, env);
+				return new Response(JSON.stringify(data), { status, headers });
+			},
+			"/msg": async () => {
+				data.msg = await handleMsg(request, env);
+				return new Response(JSON.stringify(data), { status, headers });
+			},
+			"/ecloud": async () => {
+				data.msg = await handleEcloud(request, env);
+				return new Response(JSON.stringify(data), { status, headers });
+			},
+			"/bus": async () => {
+				data.msg = await handleBus(request, env);
+				return new Response(JSON.stringify(data), { status, headers });
+			},
+			"/v1/chat": async () => {
+				const msg = await handleBayes(request, env);
+				if (msg instanceof ReadableStream) {
+					headers["Content-Type"] = "text/event-stream; charset=utf-8";
+				}
+				return new Response(msg, { status, headers });
+			},
+			"/qywx": async () => {
+				return new Response(await handlerQYWX(request, env), { status, headers });
+			},
+			"/oai": async () => {
+				return Response.redirect(await handlerOAI(request, env), 302);
+			},
+			"/ths": async () => {
+				data.msg = await handlerTHS(request, env);
+				return new Response(JSON.stringify(data), { status, headers });
+			},
+		};
+
+		const handler = routeHandlers[path];
+		if (handler) {
+			response = await handler();
+		} else {
+			response = new Response("Not Found", { status: 404 });
+		}
+	} catch (err) {
+		console.error("Error handling request:", err);
+		response = new Response("Internal Server Error", { status: 500 });
 	}
 
 	return response;
@@ -158,27 +160,59 @@ async function handleMsg (request, env) {
 	}
 }
 
-async function handleBing (request, env) {
-	if (request.method === "GET") {
-		if (new URL(request.url).pathname.startsWith('/bing/img')) {
-			return await bingImg();
+
+async function parseRequestData (request) {
+	const method = request.method.toUpperCase();
+	let data = {};
+
+	if (method === "GET") {
+		// Parse URL search params for GET request
+		const url = new URL(request.url);
+		const params = new URLSearchParams(url.search);
+		params.forEach((value, key) => {
+			data[key] = value;
+		});
+	} else if (method === "POST") {
+		// Parse body for POST request
+		const contentType = request.headers.get("content-type") || "";
+		if (contentType.includes("application/json")) {
+			// JSON body
+			data = await request.json();
+		} else if (contentType.includes("application/x-www-form-urlencoded")) {
+			// Form URL-encoded body
+			const formData = await request.formData();
+			formData.forEach((value, key) => {
+				data[key] = value;
+			});
+		} else {
+			// Other types of body (text, etc.)
+			const text = await request.text();
+			try {
+				data = JSON.parse(text);
+			} catch (error) {
+				// Handle parsing error
+				console.error("Error parsing request body:", error);
+				data = {};
+			}
 		}
+
+		// Merge URL search params with data object
+		const url = new URL(request.url);
+		const params = new URLSearchParams(url.search);
+		params.forEach((value, key) => {
+			if (!(key in data)) {
+				data[key] = value;
+			}
+		});
 	}
+
+	return data;
 }
+
 
 async function handleFavicon () {
-	const faviconUrl = 'https://blog.bxin.top/img/favicon.ico';
+	const faviconUrl = 'https://blog.xbxin.com/img/favicon.ico';
 	return fetch(faviconUrl);
-}
-
-async function sendMsg (message, env) {
-	const content = {
-		"webhook": "H",
-		"type": "text",
-		"message": message
-	};
-
-	await qywx(content, env);
 }
 
 export default {
