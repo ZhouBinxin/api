@@ -1,8 +1,7 @@
 import { bing } from "./bing"
-import { sendMessage, qywx } from "./msg"
+import { sendMessage } from "./msg"
 import { ctyun } from "./ecloud"
 import { js_bus } from "./bus"
-import { classifySMS } from "./bayes"
 import { check_url } from "./qywx"
 import { oaifree } from "./oaifree"
 import { ths } from "./ths"
@@ -45,22 +44,22 @@ async function handleRequest (request, env) {
 			timestamp: timestamp,
 		};
 
-		let status = 200;
-
 		const routeHandlers = {
 			"/": async () => {
-				return new Response(JSON.stringify(data), { status, headers });
+				return new Response(JSON.stringify(data), { status: 200, headers });
 			},
 			"/favicon.ico": () => {
 				return handleFavicon();
 			},
 			"/bing": async () => {
-				data.data = await bing(requestData, env);
-				return new Response(JSON.stringify(data), { status, headers });
+				const res = await bing(requestData, env);
+				data.data = res;
+				return new Response(JSON.stringify(data), { status: res.status, headers });
 			},
 			"/msg": async () => {
-				data.msg = await handleMsg(request, env);
-				return new Response(JSON.stringify(data), { status, headers });
+				const res = await sendMessage(requestData, env);
+				data.data = res;
+				return new Response(JSON.stringify(data), { status:res.status, headers });
 			},
 			"/ecloud": async () => {
 				data.msg = await handleEcloud(request, env);
@@ -120,16 +119,6 @@ async function handlerQYWX (request, env) {
 	return msg;
 }
 
-async function handleBayes (request, env) {
-	if (request.method === "POST") {
-		const requestData = await request.json();
-
-		const data = await classifySMS(requestData, env);
-
-		return data;
-	}
-}
-
 async function handleBus (request, env) {
 	if (request.method === "POST") {
 		const requestData = await request.json();
@@ -152,14 +141,6 @@ async function handleEcloud (request, env) {
 		}
 	}
 }
-
-async function handleMsg (request, env) {
-	if (request.method === "POST") {
-		const msg = await sendMessage(request, env);
-		return msg;
-	}
-}
-
 
 async function parseRequestData (request) {
 	const method = request.method.toUpperCase();

@@ -1,12 +1,10 @@
-export async function sendMessage (request, env) {
-  const { method, content } = await request.json();
-
-  if (method === 'qywx') {
-    return await qywx(content, env);
-  } else if (method === 'email') {
+export async function sendMessage (data, env) {
+  if (data.action === 'qywx') {
+    return await qywx(data, env);
+  } else if (data.action === 'email') {
     return await email(content, env);
   } else {
-    return 'Unsupported method:' + method;
+    return 'Unsupported method:' + data.method;
   }
 }
 
@@ -38,43 +36,50 @@ export async function email (content, env) {
 }
 
 // 发送企业微信消息
-export async function qywx (content, env) {
-  let webhook = content.webhook;
-  const { type, message } = content;
-
+async function qywx (data, env) {
+  let webhook = data.webhook;
   if (!isValidURL(webhook)) {
     webhook = env["QYWX" + webhook];
   }
 
   let requestData = {
-    msgtype: type
+    msgtype: data.msg_type
   };
-  if (type === 'text') {
+
+  if (data.msg_type === 'text') {
     requestData.text = {
-      content: message,
+      content: data.message,
     };
-  } else if (type === 'image') {
+  } else if (data.msg_type === 'image') {
     // const img_msg= JSON.parse(message);
-    requestData.image = message;
-  } else if (type === 'markdown') {
+    requestData.image = data.message;
+  } else if (data.msg_type === 'markdown') {
     requestData.markdown = {
-      content: message,
+      content: data.message,
     };
   }
-  // 发送POST请求到指定的webhook地址
-  const response = await fetch(webhook, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestData),
-  });
 
-  // 返回消息发送结果
-  if (response.ok) {
-    return message.slice(0, 10);
-  } else {
-    return response.statusText;
+  // 发送消息
+  try {
+    const response = await fetch(webhook, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
+
+    if (response.ok) {
+      const responseData = await response.json();
+      const { errcode, errmsg } = responseData;
+      return { status: response.status, errcode, errmsg };
+    } else {
+      console.error('Message sending failed:', response.statusText);
+      return { error: 'Message sending failed', status: response.status };
+    }
+  } catch (error) {
+    console.error('Failed to send message:', error);
+    return { error: 'Failed to send message', details: error.message, status: 500 };
   }
 }
 
