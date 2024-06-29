@@ -2,36 +2,49 @@ export async function sendMessage (data, env) {
   if (data.action === 'qywx') {
     return await qywx(data, env);
   } else if (data.action === 'email') {
-    return await email(content, env);
+    return await email(data, env);
   } else {
-    return 'Unsupported method:' + data.method;
+    return { status: 405, message: `不支持的消息类型 ${data.action}` };
   }
 }
 
 // 发送邮件（基于轻兔推送）
-export async function email (content, env) {
-  const { webhook, message } = content;
+export async function email (data, env) {
   const url = 'https://notice.lighttools.net/send';
 
+  let apikey = data.webhook;
+
+  if (apikey || apikey.length < 32) {
+    apikey = env.LN_APIKEY;
+  }
+
   const payload = {
-    apikey: webhook | env.LN_APIKEY,
+    apikey: apikey,
     channel: 'email',
-    title: message.title,
-    content: message.content,
+    title: data.message.slice(0, 10),
+    content: data.message,
   };
 
-  const request = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const request = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (request.ok) {
-    return message.content.slice(0, 10);
-  } else {
-    return request.statusText;
+    if (request.ok) {
+      const responseData = await request.json();
+      const { data, message } = responseData;
+      return { status: request.status, message_id: data.message_id, result: data.result, message }
+    } else {
+      console.error('Message sending failed:', response.statusText);
+      return { error: 'Message sending failed', status: response.status };
+    }
+  } catch (error) {
+    console.error('Failed to send message:', error);
+    return { error: 'Failed to send message', details: error.message, status: 500 };
   }
 }
 
