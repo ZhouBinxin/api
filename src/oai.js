@@ -1,19 +1,7 @@
-export async function oaifree (request, env) {
-  const refreshTokenList = env.rt;
-
-  // 随机选择一个refreshToken
-  const randomIndex = Math.floor(Math.random() * refreshTokenList.length);
-  const refreshToken = refreshTokenList[randomIndex];
-
-  const accessToken = await getAccessToken(refreshToken);
-  const shareToken = await getShareToken(accessToken);
-
-  return autoLogin(shareToken);
-}
-
-// 获取当前时间戳
-function getCurrentTimestamp () {
-  return Math.floor(Date.now() / 1000);
+export async function oai (data, env) {
+  if (data.action == 'auto') {
+    return await autoLogin(data, env);
+  }
 }
 
 // 使用 rt 换取 at
@@ -66,8 +54,25 @@ function generateRandomHex (length) {
 }
 
 // 自动登录
-function autoLogin (shareToken) {
-  const loginUrl = `https://chat.xbxin.com/auth/login_share?token=${shareToken}`;
-  console.log('Logging in with URL: ' + loginUrl);
-  return loginUrl;
+async function autoLogin (data, env) {
+  const refreshTokenList = env.rt;
+  const password = env.PASS;
+  let loginUrl = 'https://chat.xbxin.com/auth/login_share?token=';
+
+  // 随机选择一个refreshToken
+  const randomIndex = Math.floor(Math.random() * refreshTokenList.length);
+  const refreshToken = refreshTokenList[randomIndex];
+
+  const accessToken = await getAccessToken(refreshToken);
+
+  if (password == data.pass) {
+    loginUrl += accessToken;
+  } else {
+    const shareToken = await getShareToken(accessToken);
+    loginUrl += shareToken;
+  }
+
+  console.log(loginUrl);
+
+  return { status: 302, url: loginUrl };
 }

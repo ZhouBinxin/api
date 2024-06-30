@@ -1,10 +1,6 @@
 import { bing } from "./bing"
 import { sendMessage } from "./msg"
-import { ctyun } from "./ecloud"
-import { js_bus } from "./bus"
-import { check_url } from "./qywx"
-import { oaifree } from "./oaifree"
-import { ths } from "./ths"
+import { oai } from "./oai"
 import { cf_kv } from "./cf_kv"
 
 async function handleRequest (request, env) {
@@ -47,56 +43,39 @@ async function handleRequest (request, env) {
 
 		const routeHandlers = {
 			"/": async () => {
-				return new Response(JSON.stringify(data), { status: 200, headers });
+				const res = {
+					status: 200,
+					'bing-img': '/bing?action=img',
+					'oai-free':'/oai?action=auto'
+				}
+				return res;
 			},
 			"/favicon.ico": () => {
 				return handleFavicon();
 			},
 			"/bing": async () => {
-				const res = await bing(requestData, env);
-				data.data = res;
-				return new Response(JSON.stringify(data), { status: res.status, headers });
+				return await bing(requestData, env);
 			},
 			"/msg": async () => {
-				const res = await sendMessage(requestData, env);
-				data.data = res;
-				return new Response(JSON.stringify(data), { status: res.status, headers });
-			},
-			"/ecloud": async () => {
-				data.msg = await handleEcloud(request, env);
-				return new Response(JSON.stringify(data), { status, headers });
-			},
-			"/bus": async () => {
-				data.msg = await handleBus(request, env);
-				return new Response(JSON.stringify(data), { status, headers });
-			},
-			"/v1/chat": async () => {
-				const msg = await handleBayes(request, env);
-				if (msg instanceof ReadableStream) {
-					headers["Content-Type"] = "text/event-stream; charset=utf-8";
-				}
-				return new Response(msg, { status, headers });
-			},
-			"/qywx": async () => {
-				return new Response(await handlerQYWX(request, env), { status, headers });
+				return await sendMessage(requestData, env);
 			},
 			"/oai": async () => {
-				return Response.redirect(await handlerOAI(request, env), 302);
-			},
-			"/ths": async () => {
-				data.msg = await handlerTHS(request, env);
-				return new Response(JSON.stringify(data), { status, headers });
+				return await oai(requestData, env);
 			},
 			"/kv": async () => {
-				const res = await cf_kv(requestData, env);
-				data.data = res;
-				return new Response(JSON.stringify(data), { status: res.status, headers });
+				return await cf_kv(requestData, env);
 			},
 		};
 
 		const handler = routeHandlers[path];
 		if (handler) {
-			response = await handler();
+			const res = await handler();
+			data.data = res;
+			if (res.status === 302) {
+				response = Response.redirect(res.url, 302);
+			} else {
+				response = new Response(JSON.stringify(data), { status: res.status, headers });
+			}
 		} else {
 			response = new Response("Not Found", { status: 404 });
 		}
@@ -106,46 +85,6 @@ async function handleRequest (request, env) {
 	}
 
 	return response;
-}
-
-
-async function handlerTHS (request, env) {
-	const msg = await ths(request, env);
-	return msg;
-}
-
-async function handlerOAI (request, env) {
-	return oaifree(request, env);
-}
-
-async function handlerQYWX (request, env) {
-	const msg = await check_url(request, env);
-	// await qywx(request, env);
-
-	return msg;
-}
-
-async function handleBus (request, env) {
-	if (request.method === "POST") {
-		const requestData = await request.json();
-		const { content, id } = requestData;
-
-		const data = await js_bus(content, id, env);
-
-		return data;
-	}
-}
-
-async function handleEcloud (request, env) {
-	if (request.method === "POST") {
-		if (new URL(request.url).pathname.startsWith('/ecloud/ctyun/keepalive')) {
-			const { msg, userid } = await ctyun(request, env);
-			if (msg === 'success') {
-				await sendMsg(userid + 'ctyun keepalive success', env);
-			}
-			return msg;
-		}
-	}
 }
 
 async function parseRequestData (request) {
