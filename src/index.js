@@ -5,6 +5,7 @@ import { js_bus } from "./bus"
 import { check_url } from "./qywx"
 import { oaifree } from "./oaifree"
 import { ths } from "./ths"
+import { cf_kv } from "./cf_kv"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -59,7 +60,7 @@ async function handleRequest (request, env) {
 			"/msg": async () => {
 				const res = await sendMessage(requestData, env);
 				data.data = res;
-				return new Response(JSON.stringify(data), { status:res.status, headers });
+				return new Response(JSON.stringify(data), { status: res.status, headers });
 			},
 			"/ecloud": async () => {
 				data.msg = await handleEcloud(request, env);
@@ -85,6 +86,11 @@ async function handleRequest (request, env) {
 			"/ths": async () => {
 				data.msg = await handlerTHS(request, env);
 				return new Response(JSON.stringify(data), { status, headers });
+			},
+			"/kv": async () => {
+				const res = await cf_kv(requestData, env);
+				data.data = res;
+				return new Response(JSON.stringify(data), { status: res.status, headers });
 			},
 		};
 
