@@ -3,7 +3,7 @@ export async function bing (data, env) {
   if (data.action === 'img') {
     return await fetchBingImageData();
   } else {
-    return { status: 405, message: `不支持的类型 ${data.action}` }
+    return { status: 405, error: `不支持的类型 ${data.action}` }
   }
 }
 

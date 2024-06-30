@@ -2,9 +2,9 @@ export async function translate (data, env) {
   if (data.action === 'baidu') {
     return await baidu(data, env);
   } else if (data.action === 'deeplx') {
-    return await deeplx(data, env);
+    return await deeplx_self(data, env);
   } else {
-    return { status: 405, message: `不支持的类型 ${data.action}` }
+    return { status: 405, error: `不支持的类型 ${data.action}` }
   }
 }
 
@@ -44,7 +44,7 @@ async function baidu (data, env) {
       const data = await response.json();
       return { status: 200, data }
     } else {
-      return { status: response.status, message: "请求失败" }
+      return { status: response.status, message: response.statusText }
     }
   } catch (err) {
     return { status: 500, message: err.message }
@@ -58,6 +58,49 @@ async function makeMd5 (str) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   return hashHex;
+}
+
+
+async function deeplx_self (data, env) {
+  const url = 'https://deeplx.xbxin.com/translate';
+
+  const payload = {
+    "text": data.text,
+    "source_lang": data.from || 'auto',
+    "target_lang": data.to || 'zh'
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data)
+      const res = {
+        status: 200,
+        from: data.from || 'auto',
+        to: data.to || 'zh',
+        trans_result: {
+          src: data.text,
+          dst: data.data,
+          alternatives: data.alternatives
+        }
+      }
+      return res;
+    } else {
+      console.log(response)
+      return deeplx(data, env);
+    }
+  } catch (err) {
+    console.log(err)
+    return deeplx(data, env);
+  }
 }
 
 
@@ -94,10 +137,9 @@ async function deeplx (data, env) {
       }
       return res;
     } else {
-      return { status: response.status, message: "请求失败" }
-
+      return { status: response.status, error: response.statusText }
     }
   } catch (err) {
-    return { status: 500, message: err.message }
+    return { status: 500, error: err.message }
   }
 }
