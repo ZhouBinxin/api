@@ -8,6 +8,8 @@ export async function cf_kv (data, env) {
     return await readData(data.key, env);
   } else if (data.action == "write") {
     return await writeData(data.key, data.value, env);
+  } else {
+    return { status: 405, message: `不支持的类型 ${data.action}` }
   }
 }
 

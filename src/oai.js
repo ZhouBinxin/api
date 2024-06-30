@@ -1,6 +1,8 @@
 export async function oai (data, env) {
   if (data.action == 'auto') {
     return await autoLogin(data, env);
+  } else {
+    return { status: 405, message: `不支持的类型 ${data.action}` }
   }
 }
 
@@ -71,8 +73,6 @@ async function autoLogin (data, env) {
     const shareToken = await getShareToken(accessToken);
     loginUrl += shareToken;
   }
-
-  console.log(loginUrl);
 
   return { status: 302, url: loginUrl };
 }

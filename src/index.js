@@ -2,6 +2,7 @@ import { bing } from "./bing"
 import { sendMessage } from "./msg"
 import { oai } from "./oai"
 import { cf_kv } from "./cf_kv"
+import { translate } from "./translate"
 
 async function handleRequest (request, env) {
 	const url = new URL(request.url);
@@ -64,6 +65,9 @@ async function handleRequest (request, env) {
 			},
 			"/kv": async () => {
 				return await cf_kv(requestData, env);
+			},
+			"/translate": async () => {
+				return await translate(requestData, env);
 			},
 		};
 
