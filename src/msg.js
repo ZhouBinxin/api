@@ -3,16 +3,58 @@ export async function sendMessage (data, env) {
     return await qywx(data, env);
   } else if (data.action === 'email') {
     return await email(data, env);
-  } else {
+  } else if (data.action === 'qt') {
+    return await qt(data, env);
+  }
+  else {
     return { status: 405, error: `不支持的类型 ${data.action}` };
   }
 }
 
-// 发送邮件（基于轻兔推送）
 export async function email (data, env) {
+  const url = 'https://api.resend.com/emails';
+
+  const apikey = env.RESEND_APIKEY;
+
+  const headers = {
+    'Authorization': `Bearer ${apikey}`,
+    'Content-Type': "application/json"
+  }
+
+  const payload = {
+    from: `${data.from}@bxin.top`,
+    to: data.to,
+    subject: data.subject,
+    text: data.message,
+  };
+
+  try {
+    const request = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (request.ok) {
+      const responseData = await request.json();
+      const { id } = responseData;
+      return { status: request.status, id, result: 'success' }
+    } else {
+      console.error('Message sending failed:', response.statusText);
+      return { error: 'Message sending failed', status: response.status };
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
+    return { error: 'Error sending message', status: 500 };
+  }
+
+}
+
+// 发送邮件（基于轻兔推送）
+export async function qt (data, env) {
   const url = 'https://notice.lighttools.net/send';
 
-  let apikey = data.webhook;
+  let apikey = data.apikey;
 
   if (apikey || apikey.length < 32) {
     apikey = env.LN_APIKEY;
@@ -21,7 +63,7 @@ export async function email (data, env) {
   const payload = {
     apikey: apikey,
     channel: 'email',
-    title: data.message.slice(0, 10),
+    title: data.subject,
     content: data.message,
   };
 
