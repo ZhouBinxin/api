@@ -26,10 +26,16 @@ async function getAccessToken (refreshToken) {
 }
 
 // 使用 at 生成 st
-async function getShareToken (accessToken) {
+async function getShareToken (accessToken, admin) {
   const url = 'https://chat.oaifree.com/token/register';
   const headers = { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' };
-  const data = `unique_name=${generateRandomHex(8)}&access_token=${accessToken}&expires_in=0&site_limit=&gpt35_limit=-1&gpt4_limit=-1&show_conversations=false`;
+
+  let data;
+  if (admin) {
+    data = `unique_name=${generateRandomHex(8)}&access_token=${accessToken}&expires_in=0&site_limit=&gpt35_limit=-1&gpt4_limit=-1&show_conversations=true`;
+  } else {
+    data = `unique_name=${generateRandomHex(8)}&access_token=${accessToken}&expires_in=0&site_limit=&gpt35_limit=-1&gpt4_limit=-1&show_conversations=false`;
+  }
 
   const response = await fetch(url, { method: 'POST', headers, body: data });
   if (response.ok) {
@@ -61,18 +67,25 @@ async function autoLogin (data, env) {
   const password = env.PASS;
   let loginUrl = 'https://chat.xbxin.com/auth/login_share?token=';
 
+  let admin = false
+
+  if (password == data.pass) {
+    admin = true
+  }
   // 随机选择一个refreshToken
   const randomIndex = Math.floor(Math.random() * refreshTokenList.length);
-  const refreshToken = refreshTokenList[randomIndex];
+
+  const user = data.user % refreshTokenList.length || randomIndex;
+
+  const refreshToken = refreshTokenList[user];
 
   const accessToken = await getAccessToken(refreshToken);
 
-  if (password == data.pass) {
-    loginUrl += accessToken;
-  } else {
-    const shareToken = await getShareToken(accessToken);
-    loginUrl += shareToken;
-  }
+
+
+  const shareToken = await getShareToken(accessToken, admin, data.user);
+
+  loginUrl += shareToken;
 
   return { status: 302, url: loginUrl };
 }
